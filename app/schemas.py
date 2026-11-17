@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
@@ -36,3 +38,31 @@ class LoginRequest(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class OrderItemCreate(BaseModel):
+    product_id: int
+    quantity: int = Field(gt=0)
+
+
+class OrderCreate(BaseModel):
+    items: list[OrderItemCreate] = Field(min_length=1)
+
+
+class OrderItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    product_id: int
+    quantity: int
+    price: float
+
+
+class OrderOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    total: float
+    status: str
+    created_at: datetime
+    items: list[OrderItemOut]
