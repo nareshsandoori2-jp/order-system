@@ -1,4 +1,5 @@
 # Order System
+![Tests](https://github.com/nareshsandoori2-jp/order-system/actions/workflows/tests.yml/badge.svg)
 
 A backend API for an online store, built with FastAPI and PostgreSQL. Customers sign up, browse products and place orders. Admins manage products and move orders through their status flow.
 
@@ -101,7 +102,7 @@ python -m pytest -v
 ## Roadmap
 
 - [ ] Alembic database migrations
-- [ ] GitHub Actions CI
+- [x] GitHub Actions CI
 - [ ] Docker and Docker Compose
 - [ ] Razorpay test payments
 - [ ] Background jobs for order emails
