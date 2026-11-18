@@ -74,6 +74,17 @@ order-system/
 
 5. Open the interactive API docs at http://127.0.0.1:8000/docs
 
+
+### Run with Docker
+
+Put `SECRET_KEY=your_long_random_secret` in a `.env` file, then run:
+
+```
+docker compose up --build
+```
+
+Open http://127.0.0.1:8000/docs
+
 ## API endpoints
 
 | Method | Path | Access | Description |
@@ -103,7 +114,7 @@ python -m pytest -v
 
 - [ ] Alembic database migrations
 - [x] GitHub Actions CI
-- [ ] Docker and Docker Compose
+- [x] Docker and Docker Compose
 - [ ] Razorpay test payments
 - [ ] Background jobs for order emails
 - [ ] Deployment
