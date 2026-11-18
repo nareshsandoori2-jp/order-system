@@ -66,3 +66,7 @@ class OrderOut(BaseModel):
     status: str
     created_at: datetime
     items: list[OrderItemOut]
+
+
+class StatusUpdate(BaseModel):
+    status: str = Field(pattern="^(paid|shipped|delivered)$")

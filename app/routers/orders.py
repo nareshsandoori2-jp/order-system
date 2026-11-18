@@ -5,11 +5,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.deps import get_current_user
+from app.deps import get_current_user, require_admin
 from app.models import Order, OrderItem, Product, User
-from app.schemas import OrderCreate, OrderOut
+from app.schemas import OrderCreate, OrderOut, StatusUpdate
 
 router = APIRouter(prefix="/orders", tags=["orders"])
+
+ALLOWED_NEXT = {"placed": "paid", "paid": "shipped", "shipped": "delivered"}
 
 
 @router.post("", response_model=OrderOut, status_code=201)
@@ -99,6 +101,27 @@ def cancel_order(
         product = db.get(Product, item.product_id, with_for_update=True)
         product.stock += item.quantity
     order.status = "cancelled"
+    db.commit()
+    db.refresh(order)
+    return order
+
+
+@router.patch("/{order_id}/status", response_model=OrderOut)
+def update_status(
+    order_id: int,
+    data: StatusUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    order = db.get(Order, order_id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if ALLOWED_NEXT.get(order.status) != data.status:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot change status from '{order.status}' to '{data.status}'",
+        )
+    order.status = data.status
     db.commit()
     db.refresh(order)
     return order
