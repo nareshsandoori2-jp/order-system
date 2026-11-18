@@ -1,6 +1,8 @@
 # Order System
 ![Tests](https://github.com/nareshsandoori2-jp/order-system/actions/workflows/tests.yml/badge.svg)
 
+**Live demo:** https://order-system-m443.onrender.com/docs
+
 A backend API for an online store, built with FastAPI and PostgreSQL. Customers sign up, browse products and place orders. Admins manage products and move orders through their status flow.
 
 ## Features
@@ -117,4 +119,4 @@ python -m pytest -v
 - [x] Docker and Docker Compose
 - [ ] Razorpay test payments
 - [ ] Background jobs for order emails
-- [ ] Deployment
+- [x] Deployment
