@@ -7,7 +7,7 @@ class ProductCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     price: float = Field(gt=0)
     stock: int = Field(ge=0)
-
+    description: str | None = Field(default=None, max_length=500)   
 
 class Product(ProductCreate):
     model_config = ConfigDict(from_attributes=True)

@@ -13,6 +13,7 @@ class Product(Base):
     name: Mapped[str] = mapped_column(String(100))
     price: Mapped[float] = mapped_column(Float)
     stock: Mapped[int] = mapped_column(default=0)
+    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
 
 class User(Base):

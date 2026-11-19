@@ -1,9 +1,6 @@
 from fastapi import FastAPI
-from app.database import Base, engine
-from app import models
-from app.routers import auth, orders, products
 
-Base.metadata.create_all(bind=engine)
+from app.routers import auth, orders, products
 
 app = FastAPI(title="Order System")
 
