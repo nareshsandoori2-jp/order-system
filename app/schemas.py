@@ -70,3 +70,29 @@ class OrderOut(BaseModel):
 
 class StatusUpdate(BaseModel):
     status: str = Field(pattern="^(paid|shipped|delivered)$")
+
+class PaymentCreate(BaseModel):
+    order_id: int
+
+
+class PaymentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    order_id: int
+    amount: float
+    status: str
+    provider_order_id: str
+    provider_payment_id: str | None = None
+
+
+class PaymentVerify(BaseModel):
+    provider_order_id: str
+    provider_payment_id: str
+    signature: str
+
+
+class SimulatedCheckout(BaseModel):
+    provider_order_id: str
+    provider_payment_id: str
+    signature: str    
