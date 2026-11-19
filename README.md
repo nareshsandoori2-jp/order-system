@@ -20,7 +20,7 @@ A backend API for an online store, built with FastAPI and PostgreSQL. Customers 
 
 ## Tech stack
 
-Python, FastAPI, PostgreSQL, SQLAlchemy, Alembic, PyJWT, pwdlib (Argon2), pytest, Docker, GitHub Actions, Render
+Python, FastAPI, PostgreSQL, SQLAlchemy, Alembic, PyJWT, pwdlib (Argon2), pytest, Docker, GitHub Actions, Render, Neon
 
 ## Project structure
 
@@ -86,3 +86,11 @@ order-system/
 5. Start the server:
 
    ```
+   uvicorn app.main:app --reload
+   ```
+
+6. Open the interactive API docs at http://127.0.0.1:8000/docs
+
+### Run with Docker
+
+Put `SECRET_KEY=your_long_random_secret` in a
