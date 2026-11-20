@@ -1,11 +1,12 @@
 from collections import defaultdict
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.deps import get_current_user, require_admin
+from app.email_service import send_order_confirmation
 from app.models import Order, OrderItem, Product, User
 from app.schemas import OrderCreate, OrderOut, StatusUpdate
 
@@ -17,6 +18,7 @@ ALLOWED_NEXT = {"placed": "paid", "paid": "shipped", "shipped": "delivered"}
 @router.post("", response_model=OrderOut, status_code=201)
 def create_order(
     data: OrderCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
@@ -56,6 +58,11 @@ def create_order(
     db.add(order)
     db.commit()
     db.refresh(order)
+
+    # Runs after the response is sent, so the customer doesn't wait for it
+    background_tasks.add_task(
+        send_order_confirmation, user.email, order.id, order.total
+    )
     return order
 
 
