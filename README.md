@@ -15,6 +15,7 @@ A backend API for an online store, built with FastAPI and PostgreSQL. Customers 
 - Order status flow: `placed` -> `paid` -> `shipped` -> `delivered` (invalid jumps are rejected)
 - Payments with a simulated provider that signs and verifies payments with HMAC-SHA256, the same way Razorpay does, so the provider can be swapped by replacing one file
 - Safe to retry: creating a payment twice for one order returns the same payment, and verifying twice is harmless
+- Order confirmation emails sent in the background (simulated sender, swappable for a real email service)
 - Database migrations with Alembic
 - Automated tests with pytest on a separate test database, run on every push by GitHub Actions
 
@@ -36,6 +37,7 @@ order-system/
 │   ├── security.py               # password hashing and JWT
 │   ├── deps.py                   # current user and admin checks
 │   ├── payment_provider.py       # simulated payment provider
+│   ├── email_service.py          # simulated order confirmation email
 │   └── routers/
 │       ├── auth.py               # signup, login
 │       ├── products.py           # product endpoints
@@ -93,4 +95,78 @@ order-system/
 
 ### Run with Docker
 
-Put `SECRET_KEY=your_long_random_secret` in a
+Put `SECRET_KEY=your_long_random_secret` in a `.env` file, then run:
+
+```
+docker compose up --build
+```
+
+The container applies migrations on start. Open http://127.0.0.1:8000/docs
+
+### Database changes
+
+After editing `models.py`:
+
+```
+alembic revision --autogenerate -m "describe the change"
+alembic upgrade head
+```
+
+## Deployment
+
+The API runs on Render (Docker) with a Neon PostgreSQL database. Set these environment variables on the host:
+
+- `DATABASE_URL` (starts with `postgresql+psycopg://`)
+- `SECRET_KEY`
+
+The Docker image runs `alembic upgrade head` on start, so new migrations are applied on every deploy.
+
+## API endpoints
+
+| Method | Path | Access | Description |
+|---|---|---|---|
+| POST | `/auth/signup` | Public | Create an account |
+| POST | `/auth/login` | Public | Get a JWT token |
+| GET | `/products` | Public | List products |
+| GET | `/products/{id}` | Public | Get one product |
+| POST | `/products` | Admin | Create a product |
+| PUT | `/products/{id}` | Admin | Update a product |
+| DELETE | `/products/{id}` | Admin | Delete a product |
+| POST | `/orders` | Logged in | Place an order (sends a confirmation email in the background) |
+| GET | `/orders` | Logged in | List your orders |
+| GET | `/orders/{id}` | Owner or admin | Get one order |
+| PATCH | `/orders/{id}/cancel` | Owner or admin | Cancel a `placed` order |
+| PATCH | `/orders/{id}/status` | Admin | Move an order to the next status |
+| POST | `/payments` | Owner | Start a payment for a `placed` order |
+| POST | `/payments/{id}/simulate-checkout` | Owner | Demo only: stands in for the provider's checkout page |
+| POST | `/payments/verify` | Owner | Verify the signature, mark the payment and order `paid` |
+
+## Payment flow
+
+1. `POST /payments` with an `order_id` creates a payment and a provider order ID.
+2. `POST /payments/{id}/simulate-checkout` returns a provider payment ID and a signature (this replaces the real checkout page).
+3. `POST /payments/verify` with those three values checks the signature. A valid one marks the payment and the order `paid`; an invalid one returns 400.
+
+## Order emails
+
+When an order is placed, FastAPI's `BackgroundTasks` runs `send_order_confirmation` after the response is returned, so the customer does not wait for it. The sender in `app/email_service.py` only writes a log line. To send real emails, replace its body with a call to an email service such as Resend or Brevo.
+
+## Running tests
+
+The tests use the separate `order_system_test` database and never touch your real data.
+
+```
+python -m pytest -v
+```
+
+## Roadmap
+
+- [x] Alembic database migrations
+- [x] GitHub Actions CI
+- [x] Docker and Docker Compose
+- [x] Payments (simulated provider)
+- [x] Deployment
+- [x] Move to a database without an expiry (Neon)
+- [x] Background order confirmation email (simulated)
+- [ ] Real email sending with retries (Resend or Brevo, queue)
+- [ ] Real Razorpay test-mode integration
